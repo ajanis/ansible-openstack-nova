@@ -1,0 +1,159 @@
+[DEFAULT]
+vif_plugging_timeout = 300
+vif_plugging_is_fatal = True
+
+use_neutron = True
+firewall_driver = nova.virt.firewall.NoopFirewallDriver
+compute_driver = libvirt.LibvirtDriver
+graceful_shutdown_timeout = 5
+
+metadata_workers = 10
+osapi_compute_workers = 10
+
+logging_exception_prefix = %(asctime)s.%(msecs)03d %(process)d  [-NOVA-] TRACE %(name)s %(instance)s
+logging_default_format_string = %(asctime)s.%(msecs)03d %(process)d %(color)s%(levelname)s %(name)s [-%(color)s] %(instance)s%(color)s%(message)s
+logging_context_format_string = %(color)s%(levelname)s %(name)s [%(global_request_id)s %(request_id)s %(project_name)s %(user_name)s%(color)s] %(instance)s%(color)s%(message)s
+logging_debug_format_suffix = %(asctime)s.%(msecs)03d %(process)d %(levelname)s %(name)s [-NOVA-] %(funcName)s %(pathname)s:%(lineno)d
+
+instances_path = /var/data/nova/instances
+enabled_apis = osapi_compute
+
+metadata_listen = 0.0.0.0
+osapi_compute_listen = 0.0.0.0
+
+rootwrap_config = /etc/nova/rootwrap.conf
+allow_resize_to_same_host = True
+# default_log_levels = oslo.config=DEBUG,amqp=DEBUG,amqplib=DEBUG,sqlalchemy=DEBUG,oslo.messaging=DEBUG
+
+instance_usage_audit = True
+state_path = /var/lib/nova
+instance_name_template = %(uuid)s
+
+ram_allocation_ratio = 1.5
+cpu_allocation_ratio = 0.95
+
+service_down_time = 200
+flat_injected = True
+
+debug = True
+log_dir=/var/log/nova
+
+preallocate_images = space
+
+# from oslo.messaging
+transport_url = rabbit://{{ openstack_rabbit_user }}:{{ openstack_rabbit_pass }}@{{ openstack_rabbit_host }}/
+executor_thread_pool_size = 2048
+rpc_conn_pool_size = 60
+
+[quota]
+ram = 32768
+cores = 8
+floating_ips = 48
+instances = 8
+
+[nova_pypl]
+provider_metadata = /etc/nova/provider_metadata.json
+service_project_domain = Default
+service_project_name = service
+service_user_domain = Default
+service_password =  {{ openstack_admin_password }}
+service_user = compute
+service_auth_url = http://{{ openstack_auth_host }}/v3
+region_name = {{ openstack_region_id }}
+enable_vpc_capacity_task = True
+
+[oslo_messaging_rabbit]
+amqp_durable_queues = True
+rabbit_retry_interval = 3
+rabbit_qos_prefetch_count = 0
+pool_max_size = 100
+
+[notifications]
+notify_on_state_change = vm_and_task_state
+
+[wsgi]
+api_paste_config = /etc/nova/api-paste.ini
+
+[scheduler]
+driver = filter_scheduler
+scheduler_max_attempts=3
+host_manager=host_manager
+discover_hosts_in_cells_interval=180
+
+[filter_scheduler]
+enabled_filters = RetryFilter,AvailabilityZoneFilter,DifferentHostFilter
+host_subset_size = 1
+track_instance_changes = True
+
+[database]
+connection = mysql+pymysql://{{ openstack_nova_mysql_user }}:{{ openstack_nova_mysql_pass }}@{{ openstack_mysql_host }}/{{ openstack_nova_mysql_db }}?charset=utf8
+max_overflow = 30
+pool_timeout = 30
+idle_timeout = 300
+max_pool_size = 30
+use_tpool = True
+
+[api_database]
+connection = mysql+pymysql://{{ openstack_nova_api_mysql_user }}:{{ openstack_nova_api_mysql_pass }}@{{ openstack_mysql_host }}/{{ openstack_nova_api_mysql_db }}?charset=utf8
+max_overflow = 30
+pool_timeout = 30
+idle_timeout = 300
+max_pool_size = 30
+use_tpool = True
+
+[keystone_authtoken]
+project_domain_name = Default
+project_name = service
+user_domain_name = Default
+password =  {{ openstack_admin_password }}
+username = compute
+auth_url =  http://{{ openstack_auth_host }}/v3
+auth_type = password
+region_name = {{ openstack_region_id }}
+
+[oslo_concurrency]
+lock_path = /var/lock/nova
+
+[oslo_messaging_notifications]
+transport_url = rabbit://{{ openstack_rabbit_user }}:{{ openstack_rabbit_pass }}@{{ openstack_rabbit_host }}/
+driver = messaging
+topics = notifications
+
+[glance]
+api_servers = http://{{ openstack_glance_host }}
+
+[conductor]
+workers = 8
+
+[placement]
+os_region_name = {{ openstack_region_id }}
+project_domain_name = Default
+project_name = service
+user_domain_name = Default
+password =  {{ openstack_admin_password }}
+username = placement
+auth_url =  http://{{ openstack_auth_host }}/v3
+auth_type = password
+
+[neutron]
+service_metadata_proxy = True
+url = http://{{ openstack_neutron_host }}
+region_name = {{ openstack_region_id }}
+auth_strategy = keystone
+project_domain_name = Default
+project_name = service
+user_domain_name = Default
+password =  {{ openstack_admin_password }}
+username = neutron
+auth_url = http://{{ openstack_auth_host }}/v3
+auth_type = password
+
+[vnc]
+enabled = False
+
+[spice]
+agent_enabled = True
+enabled = True
+html5proxy_base_url = http://{{ openstack_vnc_host }}/spice_auto.html
+html5proxy_port = 80
+html5proxy_host = 0.0.0.0

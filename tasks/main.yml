@@ -1,0 +1,21 @@
+---
+
+- name: Set up users and service directories
+  import_role:
+    name: openstack-common
+    tasks_from: service-setup-docker.yml
+
+- name: Install service config files
+  import_role:
+    name: openstack-common
+    tasks_from: service-configs.yml
+
+- name: Deploy Containers
+  import_role:
+    name: openstack-common
+    tasks_from: service-containers.yml
+
+- name: create nova container
+  shell: docker run -v /etc/nova:/etc/nova:ro -p 8774:8774 -p 8778:8778 -v /var/lib/nova:/var/lib/nova -v /var/log/nova:/var/log/nova --name nova --workdir /var/lib/nova -d -t dockerhub.paypalcorp.com/ajanis/nova:latest
+  args:
+    executable: /bin/bash

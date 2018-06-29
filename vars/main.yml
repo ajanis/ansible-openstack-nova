@@ -1,0 +1,111 @@
+---
+openstack_package_prerequisites:
+  - python-pip
+  - libssl-dev
+  - python-pymysql
+  - python-pil
+  - python-gobject
+  - python-scgi
+  - python-memcache
+  - bridge-utils
+  - ebtables
+  - openssh-client
+  - rsync
+  - python-virtualenv
+  - nginx
+  - uwsgi
+  - uwsgi-emperor
+  - uwsgi-core
+  - supervisor
+
+openstack_service_daemons:
+  - nova-api
+  - nova-conductor
+  - nova-scheduler
+  - nova-spiceproxy
+  - nova-consoleauth
+
+openstack_services:
+  - nova
+
+openstack_sudoers:
+  - nova
+ 
+service_files:
+  etc:
+    src: etc
+    dest: /etc/nova
+
+config_files:
+  nova.conf:
+    src: nova.conf.j2
+    dest: /etc/nova/nova.conf
+    owner: nova
+    group: nova
+    notify:
+      - reread supervisor
+      - reload supervisor
+
+contrib_files:
+  nova-api.ini:
+    src: contrib/httpd/nova-api.ini
+    dest: /etc/uwsgi-emperor/vassals/nova-api.ini
+    owner: root
+    group: root
+    notify:
+      - reread supervisor
+      - reload supervisor
+  nova-placement-api.ini:
+    src: contrib/httpd/nova-placement-api.ini
+    dest: /etc/uwsgi-emperor/vassals/nova-placement-api.ini
+    owner: root
+    group: root
+    notify:
+      - reread supervisor
+      - reload supervisor
+  nova.conf:
+    src: contrib/etc/nginx/sites-available/nova.conf
+    dest: /etc/nginx/sites-enabled/nova.conf
+    owner: root
+    group: root
+    notify:
+      - reread supervisor
+      - reload supervisor
+  supervisord.conf:
+    src: contrib/etc/supervisord/supervisord.conf
+    dest: /etc/supervisor/conf.d/supervisord.conf
+    owner: root
+    group: root
+    notify:
+      - reread supervisor
+      - reload supervisor
+  nova-api-wsgi:
+    src: contrib/httpd/nova-api-wsgi
+    dest: /var/www/nova/nova-api-wsgi
+    owner: nova
+    group: nova
+    notify:
+      - reread supervisor
+      - reload supervisor
+  nova-placement-api-wsgi:
+    src: contrib/httpd/nova-placement-api-wsgi
+    dest: /var/www/nova/nova-placement-api-wsgi
+    owner: nova
+    group: nova
+    notify:
+      - reread supervisor
+      - reload supervisor
+
+openstack_source_projects:
+  - nova
+  - python-novaclient
+    
+docker_containers:
+  nova:
+    image: dockerhub.paypalcorp.com/ajanis/nova:latest
+    ports:
+      - 8774:8774
+      - 8778:8778
+    volumes:
+      - /etc/nova:/etc/nova:ro
+      - /var/log/nova:/var/log/nova

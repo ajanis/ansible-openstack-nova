@@ -1,0 +1,7 @@
+- name: Deploy openstack nova server
+  hosts: openstack_nova
+  become: True
+  gather_facts: True
+  tasks:
+    - include_role:
+        name: openstack-nova
